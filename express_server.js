@@ -51,10 +51,12 @@ app.post('/urls', (req, res) => {
 
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  if (!longURL) {
+    res.send('<h1>Error! Please input correct shortURL.</h1>')
+  } else {
+    res.redirect(longURL);
+  }
 });
-
-
 
 
 app.get('/hello', (req, res) => {
