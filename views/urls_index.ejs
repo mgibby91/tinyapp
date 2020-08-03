@@ -19,7 +19,6 @@
         <tr>
           <th scope="col">Short URL</th>
           <th scope="col">Long URL</th>
-          <th scope="col">Shorten URL</th>
         </tr>
       </thead>
       <tbody>
@@ -27,11 +26,12 @@
         <tr>
           <td><%= url %></td>
           <td><%= urls[url] %></td>
-          <td>Shorten <a href="#"><%=urls[url]%></a></td>
         </tr>
         <% } %>
       </tbody>
     </table>
+
+    <a href="#">Shorten New URL</a>
   </main>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
