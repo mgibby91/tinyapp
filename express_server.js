@@ -36,8 +36,17 @@ app.get('/urls/:shortURL', (req, res) => {
 
 
 app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send('OK');
+  const longURL = req.body.longURL;
+  const shortURL = generateRandomString();
+
+  urlDatabase[shortURL] = longURL;
+
+  let templateVars = {
+    shortURL,
+    longURL
+  };
+  res.render('urls_show', templateVars);
+
 })
 
 
@@ -50,3 +59,21 @@ app.get('/hello', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Example app listenting on port ${PORT}`);
 });
+
+
+
+// Generate string of 6 random alphanumeric characters
+function generateRandomString() {
+
+  const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  let randomStr = '';
+
+  for (let i = 0; i < 6; i++) {
+    const randomNum = Math.floor(Math.random() * chars.length);
+    randomStr += chars[randomNum];
+  }
+
+  return randomStr;
+
+}
