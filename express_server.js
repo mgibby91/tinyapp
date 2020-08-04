@@ -66,7 +66,24 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
   let templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
-})
+});
+
+// edit an existing post from the shortURL route
+app.post('/urls/:id', (req, res) => {
+
+  const newLongURL = req.body.editURL;
+  const shortURL = req.params.id;
+
+  urlDatabase[shortURL] = newLongURL;
+
+  let templateVars = {
+    shortURL,
+    longURL: newLongURL
+  };
+  res.render('urls_show', templateVars);
+
+});
+
 
 
 app.get('/hello', (req, res) => {
