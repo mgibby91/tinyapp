@@ -15,31 +15,48 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  "4mFAue": {
+    id: "4mFAue",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  }
+
+};
+
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
 
 app.get('/urls', (req, res) => {
   let templateVars = {
-    username: req.cookies['username'],
+    user: users[req.cookies['user_id']],
     urls: urlDatabase
   };
 
-  console.log(templateVars);
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
   let templateVars = {
-    username: req.cookies['username']
+    user: users[req.cookies['user_id']]
   }
 
   res.render('urls_new', templateVars);
-})
+});
+
+// registration form get request
+app.get('/register', (req, res) => {
+  let templateVars = {
+    user: users[req.cookies['user_id']]
+  };
+
+  res.render('urls_registration', templateVars);
+});
 
 app.get('/urls/:shortURL', (req, res) => {
   let templateVars = {
-    username: req.cookies['username'],
+    user: users[req.cookies['user_id']],
     shortURL: req.params.shortURL,
     longURL: urlDatabase[req.params.shortURL]
   };
@@ -54,7 +71,7 @@ app.post('/urls', (req, res) => {
   urlDatabase[shortURL] = longURL;
 
   let templateVars = {
-    username: req.cookies['username'],
+    user: users[req.cookies['user_id']],
     shortURL,
     longURL
   };
@@ -78,7 +95,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
 
   let templateVars = {
-    username: req.cookies['username'],
+    user: users[req.cookies['user_id']],
     urls: urlDatabase
   };
   res.render('urls_index', templateVars);
@@ -93,7 +110,7 @@ app.post('/urls/:id', (req, res) => {
   urlDatabase[shortURL] = newLongURL;
 
   let templateVars = {
-    username: req.cookies['username'],
+    user: users[req.cookies['user_id']],
     shortURL,
     longURL: newLongURL
   };
@@ -113,11 +130,30 @@ app.post('/login', (req, res) => {
 // logout and remove username from cookies
 app.post('/logout', (req, res) => {
 
+  // will need to change this!!!
   res.clearCookie('username');
 
   res.redirect('/urls');
 });
 
+// registration form post req
+app.post('/register', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const id = generateRandomString();
+
+  users[id] = {
+    id,
+    email,
+    password
+  };
+
+  res.cookie('user_id', id);
+
+  res.redirect('/urls');
+
+  console.log(users);
+})
 
 
 app.get('/hello', (req, res) => {
