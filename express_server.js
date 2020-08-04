@@ -54,6 +54,15 @@ app.get('/register', (req, res) => {
   res.render('urls_registration', templateVars);
 });
 
+// login page get request
+app.get('/login', (req, res) => {
+  let templateVars = {
+    user: users[req.cookies['user_id']]
+  };
+
+  res.render('urls_login', templateVars);
+});
+
 app.get('/urls/:shortURL', (req, res) => {
   let templateVars = {
     user: users[req.cookies['user_id']],
