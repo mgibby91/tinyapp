@@ -142,6 +142,18 @@ app.post('/register', (req, res) => {
   const password = req.body.password;
   const id = generateRandomString();
 
+  if (!email || !password) {
+    res.send('<h1>Status of 400: Bad Request. Please Enter Valid Email/Password</h1>');
+    return;
+  }
+
+  const isEmailInUse = emailLookup(email);
+
+  if (isEmailInUse) {
+    res.send('<h1>Status of 400: Bad Request. Username Already In Use</h1>');
+    return;
+  }
+
   users[id] = {
     id,
     email,
@@ -180,4 +192,15 @@ function generateRandomString() {
 
   return randomStr;
 
+}
+
+function emailLookup(email) {
+
+  for (let user in users) {
+    if (users[user].email === email) {
+      return true;
+    }
+  }
+
+  return false;
 }
