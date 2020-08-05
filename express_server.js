@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const alert = require('alert');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -11,14 +12,14 @@ app.set('view engine', 'ejs');
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: '4mFAue' },
-  "9sm5xK": { longURL: "http://www.google.com", userID: '4mFAue' }
+  "9sm5xK": { longURL: "http://www.google.com", userID: '666666' },
 };
 
 const users = {
   "4mFAue": {
     id: "4mFAue",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    password: "purple"
   }
 };
 
@@ -27,9 +28,18 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
+
+  if (!req.cookies['user_id']) {
+    alert('Please login to view URLS!');
+    res.redirect('/login');
+    return;
+  }
+
+  const filteredUrls = urlsForUser(req.cookies['user_id']);
+
   let templateVars = {
     user: users[req.cookies['user_id']],
-    urls: urlDatabase
+    urls: filteredUrls
   };
 
   res.render('urls_index', templateVars);
@@ -68,6 +78,13 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
+
+  if (!req.cookies['user_id']) {
+    alert('Please login to view URLS!');
+    res.redirect('/login');
+    return;
+  }
+
   let templateVars = {
     user: users[req.cookies['user_id']],
     shortURL: req.params.shortURL,
@@ -105,17 +122,33 @@ app.get('/u/:shortURL', (req, res) => {
 
 // remove post with delete button
 app.post('/urls/:shortURL/delete', (req, res) => {
+  // prevents user not logged in from deleting url
+  const firstFilteredUrls = urlsForUser(req.cookies['user_id']);
+
+  if (!Object.entries(firstFilteredUrls[req.params.shortURL]).length) {
+    res.redirect('/urls');
+    return
+  }
+
   delete urlDatabase[req.params.shortURL];
+  const filteredUrls = urlsForUser(req.cookies['user_id']);
 
   let templateVars = {
     user: users[req.cookies['user_id']],
-    urls: urlDatabase
+    urls: filteredUrls
   };
   res.render('urls_index', templateVars);
 });
 
 // edit an existing post from the shortURL
 app.post('/urls/:id', (req, res) => {
+  // prevents user not logged in from editing url
+  const firstFilteredUrls = urlsForUser(req.cookies['user_id']);
+
+  if (!Object.entries(firstFilteredUrls[req.params.shortURL]).length) {
+    res.redirect('/urls');
+    return
+  }
 
   const newLongURL = req.body.editURL;
   const shortURL = req.params.id;
@@ -231,4 +264,19 @@ function emailLookup(email) {
   }
 
   return false;
+}
+
+
+function urlsForUser(id) {
+
+  let result = {};
+
+  for (let user in urlDatabase) {
+    if (urlDatabase[user].userID === id) {
+      result[user] = urlDatabase[user];
+    }
+  }
+
+  return result;
+
 }

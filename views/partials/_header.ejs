@@ -17,10 +17,6 @@
       <div class="navbar-login" style="display: flex; align-items: center;">
 
         <% if(!user) { %>
-        <!-- <form method='POST' action="/login">
-          <input type="text" name='username' placeholder="Username">
-          <button type="submit" class="btn btn-outline-dark">Login</button>
-        </form> -->
         <a href="/login"><button type="button" class="btn btn-outline-dark">Login</button></a>
         <% } else { %>
         <div class="username-display" style="margin-right: 1rem;">Logged In As: <%= user.email %>!</div>
