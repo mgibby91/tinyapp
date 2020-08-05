@@ -210,7 +210,8 @@ app.post('/login', (req, res) => {
 
 // logout and remove username from cookies
 app.post('/logout', (req, res) => {
-  req.session.user_id = null;
+  console.log(req.session.user_id);
+  req.session = null;
 
   res.redirect('/login');
 });
