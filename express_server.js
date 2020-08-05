@@ -127,23 +127,40 @@ app.post('/urls/:id', (req, res) => {
 
 });
 
-// Store username as cookie
+// Login and Store username as cookie
 app.post('/login', (req, res) => {
-  const username = req.body.username;
+  const email = req.body.email;
+  const password = req.body.password;
 
-  res.cookie('username', username);
+  const isEmailInUsers = emailLookup(email);
 
-  res.redirect('/urls');
+  if (!isEmailInUsers) {
+    res.send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
+    return;
+  }
+
+  for (let user in users) {
+    if (users[user].email === email && users[user].password === password) {
+      res.cookie('user_id', user);
+      res.redirect('/urls');
+    }
+  }
+
+  // if username is OK but password does not match
+  res.send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
+  return
+
 });
 
 // logout and remove username from cookies
 app.post('/logout', (req, res) => {
 
   // will need to change this!!!
-  res.clearCookie('username');
+  res.clearCookie('user_id');
 
   res.redirect('/urls');
 });
+
 
 // registration form post req
 app.post('/register', (req, res) => {
@@ -172,8 +189,6 @@ app.post('/register', (req, res) => {
   res.cookie('user_id', id);
 
   res.redirect('/urls');
-
-  console.log(users);
 })
 
 
