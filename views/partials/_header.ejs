@@ -10,14 +10,16 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <a class="nav-item nav-link" href="/register">Register For Account</a>
+        <!-- <a class="nav-item nav-link" href="/register">Register For Account</a> -->
         <!-- <a class="nav-item nav-link" href="/login">Login</a> -->
 
       </div>
       <div class="navbar-login" style="display: flex; align-items: center;">
 
         <% if(!user) { %>
-        <a href="/login"><button type="button" class="btn btn-outline-dark">Login</button></a>
+        <a href="/login"><button type="button" class="btn btn-outline-dark"
+            style='margin-right: 1rem;'>Login</button></a>
+        <a href="/register"><button type="button" class="btn btn-outline-dark">Register</button></a>
         <% } else { %>
         <div class="username-display" style="margin-right: 1rem;">Logged In As: <%= user.email %>!</div>
         <form method='POST' action="/logout">

@@ -12,7 +12,7 @@ app.set('view engine', 'ejs');
 
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: '4mFAue' },
-  "9sm5xK": { longURL: "http://www.google.com", userID: '666666' },
+  "9sm5xK": { longURL: "http://www.google.com", userID: '4mFAue' },
 };
 
 const users = {
@@ -48,6 +48,7 @@ app.get('/urls', (req, res) => {
 app.get('/urls/new', (req, res) => {
 
   if (!req.cookies['user_id']) {
+    alert('Please login to create new URL!');
     res.redirect('/login');
     return;
   }
@@ -85,6 +86,9 @@ app.get('/urls/:shortURL', (req, res) => {
     return;
   }
 
+  console.log(urlDatabase);
+  console.log(req.params.shortURL);
+
   let templateVars = {
     user: users[req.cookies['user_id']],
     shortURL: req.params.shortURL,
@@ -94,7 +98,7 @@ app.get('/urls/:shortURL', (req, res) => {
 });
 
 // add longURL shortURL to database object
-app.post('/urls', (req, res) => {
+app.post('/urls/new', (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
 
@@ -105,6 +109,9 @@ app.post('/urls', (req, res) => {
     shortURL,
     longURL
   };
+
+  console.log(urlDatabase);
+
   res.render('urls_show', templateVars);
 
 });
@@ -123,15 +130,19 @@ app.get('/u/:shortURL', (req, res) => {
 // remove post with delete button
 app.post('/urls/:shortURL/delete', (req, res) => {
   // prevents user not logged in from deleting url
-  const firstFilteredUrls = urlsForUser(req.cookies['user_id']);
-
-  if (!Object.entries(firstFilteredUrls[req.params.shortURL]).length) {
-    res.redirect('/urls');
-    return
+  if (!req.cookies['user_id']) {
+    res.send('<h1>Status of 401: Unauthorized Access.');
+    return;
+  } else if (urlDatabase[req.params.shortURL].userID !== req.cookies['user_id']) {
+    res.send('<h1>Status of 401: Unauthorized Access.');
+    return;
   }
 
   delete urlDatabase[req.params.shortURL];
   const filteredUrls = urlsForUser(req.cookies['user_id']);
+
+  console.log(urlDatabase);
+  console.log(filteredUrls);
 
   let templateVars = {
     user: users[req.cookies['user_id']],
@@ -143,11 +154,12 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 // edit an existing post from the shortURL
 app.post('/urls/:id', (req, res) => {
   // prevents user not logged in from editing url
-  const firstFilteredUrls = urlsForUser(req.cookies['user_id']);
-
-  if (!Object.entries(firstFilteredUrls[req.params.shortURL]).length) {
-    res.redirect('/urls');
-    return
+  if (!req.cookies['user_id']) {
+    res.send('<h1>Status of 401: Unauthorized Access.');
+    return;
+  } else if (urlDatabase[req.params.id].userID !== req.cookies['user_id']) {
+    res.send('<h1>Status of 401: Unauthorized Access.');
+    return;
   }
 
   const newLongURL = req.body.editURL;
@@ -180,22 +192,21 @@ app.post('/login', (req, res) => {
     if (users[user].email === email && users[user].password === password) {
       res.cookie('user_id', user);
       res.redirect('/urls');
+      return;
     }
   }
 
   // if username is OK but password does not match
   res.send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
-  return
+  return;
 
 });
 
 // logout and remove username from cookies
 app.post('/logout', (req, res) => {
-
-  // will need to change this!!!
   res.clearCookie('user_id');
 
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 
