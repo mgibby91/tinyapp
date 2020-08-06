@@ -92,9 +92,6 @@ app.get('/urls/:shortURL', (req, res) => {
     return;
   }
 
-  console.log(urlDatabase);
-  console.log(req.params.shortURL);
-
   let templateVars = {
     user: users[req.session.user_id],
     shortURL: req.params.shortURL,
@@ -147,9 +144,6 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   const filteredUrls = urlsForUser(req.session.user_id);
 
-  console.log(urlDatabase);
-  console.log(filteredUrls);
-
   let templateVars = {
     user: users[req.session.user_id],
     urls: filteredUrls
@@ -187,19 +181,34 @@ app.post('/login', (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  const isEmailInUsers = emailLookup(email);
+  // const isEmailInUsers = emailLookup(email);
 
-  if (!isEmailInUsers) {
+  // if (!isEmailInUsers) {
+  //   res.send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
+  //   return;
+  // }
+
+  // for (let user in users) {
+  //   if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
+  //     console.log(user);
+  //     req.session.user_id = user;
+  //     res.redirect('/urls');
+  //     return;
+  //   }
+  // }
+
+  const user = getUserByEmail(email, users);
+
+  if (!Object.keys(user).length) {
     res.send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
     return;
   }
 
-  for (let user in users) {
-    if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
-      req.session.user_id = user;
-      res.redirect('/urls');
-      return;
-    }
+  if (user.email && bcrypt.compareSync(password, user.password)) {
+    console.log(user);
+    req.session.user_id = user.id;
+    res.redirect('/urls');
+    return;
   }
 
   // if username is OK but password does not match
@@ -210,7 +219,6 @@ app.post('/login', (req, res) => {
 
 // logout and remove username from cookies
 app.post('/logout', (req, res) => {
-  console.log(req.session.user_id);
   req.session = null;
 
   res.redirect('/login');
@@ -283,6 +291,20 @@ function emailLookup(email) {
   }
 
   return false;
+}
+
+function getUserByEmail(email, userDatabase) {
+
+  let user = {};
+
+  for (let singleUser in userDatabase) {
+    if (userDatabase[singleUser].email === email) {
+      user = userDatabase[singleUser];
+    }
+  }
+
+  return user;
+
 }
 
 
