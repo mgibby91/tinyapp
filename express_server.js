@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const alert = require('alert');
 const bcrypt = require('bcrypt');
+const methodOverride = require('method-override');
 const { getUserByEmail, generateRandomString, emailLookup, urlsForUser } = require('./helpers');
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -14,6 +15,7 @@ app.use(cookieSession({
   name: 'session',
   keys: ['key1', "key2"]
 }));
+app.use(methodOverride('_method'));
 
 app.set('view engine', 'ejs');
 
@@ -130,7 +132,7 @@ app.get('/u/:shortURL', (req, res) => {
 
 
 // remove post with delete button
-app.post('/urls/:shortURL/delete', (req, res) => {
+app.delete('/urls/:shortURL/delete', (req, res) => {
   // prevents user not logged in from deleting url
   if (!req.session.user_id) {
     res.status(401).send('<h1>Status of 401: Unauthorized Access.</h1>');
@@ -151,7 +153,7 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 // edit an existing post from the shortURL
-app.post('/urls/:id', (req, res) => {
+app.put('/urls/:id', (req, res) => {
   // prevents user not logged in from editing url
   if (!req.session.user_id) {
     res.status(401).send('<h1>Status of 401: Unauthorized Access.');
