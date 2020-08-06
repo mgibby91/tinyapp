@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
 const alert = require('alert');
 const bcrypt = require('bcrypt');
+const { getUserByEmail } = require('./helpers');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -291,20 +292,6 @@ function emailLookup(email) {
   }
 
   return false;
-}
-
-function getUserByEmail(email, userDatabase) {
-
-  let user = {};
-
-  for (let singleUser in userDatabase) {
-    if (userDatabase[singleUser].email === email) {
-      user = userDatabase[singleUser];
-    }
-  }
-
-  return user;
-
 }
 
 
