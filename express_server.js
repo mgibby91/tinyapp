@@ -31,7 +31,7 @@ const users = {
 };
 
 app.get('/', (req, res) => {
-  res.send('Hello!');
+  res.redirect('/urls');
 });
 
 app.get('/urls', (req, res) => {
@@ -93,6 +93,17 @@ app.get('/urls/:shortURL', (req, res) => {
     return;
   }
 
+  if (!urlDatabase[req.params.shortURL]) {
+    res.status(404).send('<h1>Status of 404: Not Found.');
+    return;
+  }
+
+  // if user trying to modify other user's shortURL
+  if (users[req.session.user_id].id !== urlDatabase[req.params.shortURL].userID) {
+    res.status(404).send('<h1>Status of 401: Unauthorized Access.');
+    return;
+  };
+
   let templateVars = {
     user: users[req.session.user_id],
     shortURL: req.params.shortURL,
@@ -102,7 +113,7 @@ app.get('/urls/:shortURL', (req, res) => {
 });
 
 // add longURL shortURL to database object
-app.post('/urls/new', (req, res) => {
+app.post('/urls', (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
 
@@ -114,8 +125,6 @@ app.post('/urls/new', (req, res) => {
     longURL
   };
 
-  console.log(urlDatabase);
-
   res.render('urls_show', templateVars);
 
 });
@@ -124,7 +133,7 @@ app.post('/urls/new', (req, res) => {
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
   if (!longURL) {
-    res.send('<h1>Error! Please input correct shortURL.</h1>')
+    res.status(404).send('<h1>Error! Please input correct shortURL.</h1>')
   } else {
     res.redirect(longURL);
   }
@@ -135,10 +144,10 @@ app.get('/u/:shortURL', (req, res) => {
 app.post('/urls/:shortURL/delete', (req, res) => {
   // prevents user not logged in from deleting url
   if (!req.session.user_id) {
-    res.send('<h1>Status of 401: Unauthorized Access.');
+    res.status(401).send('<h1>Status of 401: Unauthorized Access.</h1>');
     return;
   } else if (urlDatabase[req.params.shortURL].userID !== req.session.user_id) {
-    res.send('<h1>Status of 401: Unauthorized Access.');
+    res.status(404).send('<h1>Status of 401: Unauthorized Access.</h1>');
     return;
   }
 
@@ -156,10 +165,10 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.post('/urls/:id', (req, res) => {
   // prevents user not logged in from editing url
   if (!req.session.user_id) {
-    res.send('<h1>Status of 401: Unauthorized Access.');
+    res.status(401).send('<h1>Status of 401: Unauthorized Access.');
     return;
   } else if (urlDatabase[req.params.id].userID !== req.session.user_id) {
-    res.send('<h1>Status of 401: Unauthorized Access.');
+    res.status(401).send('<h1>Status of 401: Unauthorized Access.');
     return;
   }
 
@@ -168,12 +177,17 @@ app.post('/urls/:id', (req, res) => {
 
   urlDatabase[shortURL].longURL = newLongURL;
 
+  const filteredUrls = urlsForUser(req.session.user_id);
+
   let templateVars = {
     user: users[req.session.user_id],
     shortURL,
-    longURL: newLongURL
+    longURL: newLongURL,
+    urls: filteredUrls
   };
-  res.render('urls_show', templateVars);
+
+  // NEED TO REDIRECT TO /URLS
+  res.render('urls_index', templateVars);
 
 });
 
@@ -201,7 +215,7 @@ app.post('/login', (req, res) => {
   const user = getUserByEmail(email, users);
 
   if (!Object.keys(user).length) {
-    res.send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
+    res.status(403).send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
     return;
   }
 
@@ -213,7 +227,7 @@ app.post('/login', (req, res) => {
   }
 
   // if username is OK but password does not match
-  res.send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
+  res.status(403).send('<h1>Status of 403: Forbidden Request. Please Enter Valid Email/Password</h1>');
   return;
 
 });
@@ -241,7 +255,7 @@ app.post('/register', (req, res) => {
   const isEmailInUse = emailLookup(email);
 
   if (isEmailInUse) {
-    res.send('<h1>Status of 400: Bad Request. Username Already In Use</h1>');
+    res.status(400).send('<h1>Status of 400: Bad Request. Username Already In Use</h1>');
     return;
   }
 
