@@ -7,7 +7,12 @@ const cookieSession = require('cookie-session');
 const alert = require('alert');
 const bcrypt = require('bcrypt');
 const methodOverride = require('method-override');
-const { getUserByEmail, generateRandomString, emailLookup, urlsForUser } = require('./helpers');
+const { getUserByEmail,
+  generateRandomString,
+  emailLookup,
+  urlsForUser,
+  calculateTotalVisitors,
+  calculateUniqueVisits } = require('./helpers');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -21,6 +26,13 @@ app.set('view engine', 'ejs');
 
 const urlDatabase = {};
 const users = {};
+
+const urlVisitorsDB = {
+  // shortURL: {
+  //   visitorID1: [ts1, ts2],
+  //   visitorID2: [ts1, ts2]
+  // }
+}
 
 app.get('/', (req, res) => {
   res.redirect('/urls');
@@ -96,10 +108,19 @@ app.get('/urls/:shortURL', (req, res) => {
     return;
   }
 
+  // Stretch - analysis of visitors to specific shortURL
+  let totalVisitors = calculateTotalVisitors(req.params.shortURL, urlVisitorsDB);
+  let uniqueVisits = calculateUniqueVisits(req.params.shortURL, urlVisitorsDB);
+
+  const shortURLVisits = urlVisitorsDB[req.params.shortURL];
+
   let templateVars = {
     user: users[req.session.user_id],
     shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
+    longURL: urlDatabase[req.params.shortURL].longURL,
+    totalVisitors,
+    uniqueVisits,
+    shortURLVisits
   };
   res.render('urls_show', templateVars);
 });
@@ -110,23 +131,39 @@ app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
 
   urlDatabase[shortURL] = { longURL, userID: req.session.user_id };
+  urlVisitorsDB[shortURL] = {};
+
+  const filteredUrls = urlsForUser(req.session.user_id, urlDatabase);
 
   let templateVars = {
     user: users[req.session.user_id],
     shortURL,
-    longURL
+    longURL,
+    urls: filteredUrls
   };
 
-  res.render('urls_show', templateVars);
+  res.render('urls_index', templateVars);
 });
 
 // redirect to longURL page when click on shortURL
+// the link that can be used by public
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL].longURL;
+  const short = req.params.shortURL;
   if (!longURL) {
     res.status(404).send('<h1>Error! Please input correct shortURL.</h1>');
   } else {
     res.redirect(longURL);
+
+    const timeStamp = new Date();
+    const visitorID = req.session.user_id;
+
+    if (!(urlVisitorsDB[short][visitorID])) {
+      urlVisitorsDB[short][visitorID] = [timeStamp];
+    } else {
+      urlVisitorsDB[short][visitorID].push(timeStamp);
+    }
+
   }
 });
 
@@ -143,6 +180,8 @@ app.delete('/urls/:shortURL/delete', (req, res) => {
   }
 
   delete urlDatabase[req.params.shortURL];
+  delete urlVisitorsDB[req.params.shortURL];
+
   const filteredUrls = urlsForUser(req.session.user_id, urlDatabase);
 
   let templateVars = {

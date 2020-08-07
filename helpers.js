@@ -54,4 +54,34 @@ const urlsForUser = function(id, urlDatabase) {
 
 }
 
-module.exports = { getUserByEmail, generateRandomString, emailLookup, urlsForUser };
+
+const calculateTotalVisitors = function(short, visitorsDB) {
+
+  let count = 0;
+
+  for (let shortURL in visitorsDB) {
+    if (shortURL === short) {
+      for (let visitorID in visitorsDB[shortURL]) {
+        count += visitorsDB[shortURL][visitorID].length;
+      }
+    }
+  }
+
+  return count;
+
+}
+const calculateUniqueVisits = function(short, visitorsDB) {
+
+  let count = 0;
+
+  for (let shortURL in visitorsDB) {
+    if (shortURL === short) {
+      count += Object.keys(visitorsDB[shortURL]).length;
+    }
+  }
+
+  return count;
+
+}
+
+module.exports = { getUserByEmail, generateRandomString, emailLookup, urlsForUser, calculateTotalVisitors, calculateUniqueVisits };

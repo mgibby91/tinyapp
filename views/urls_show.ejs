@@ -28,7 +28,36 @@
       </form>
 
     </div>
+    <div class="card-body" style='display: flex; align-items: center; flex-direction: column;'>
+      <p style='font-weight: 800;'>Total Visits: <%= totalVisitors %></p>
+      <p style='font-weight: 800;'>Unique Visits: <%= uniqueVisits %></p>
+
+      <table class="table" style=' width: 50%'>
+        <thead>
+          <tr>
+            <th scope="col">Visitor ID</th>
+            <th scope="col">Visits By Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for(let ID in shortURLVisits) { %>
+          <tr>
+            <td>
+              <% for(let timeStamp of shortURLVisits[ID]) {  %>
+          <tr>
+            <td><%= ID %></td>
+            <td><%= timeStamp %></td>
+          </tr>
+          <% } %>
+          <% } %>
+          </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
   </div>
+
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
     integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
